@@ -1,0 +1,7 @@
+# Object files
+*.o
+
+# My development files
+.vscode/*
+.DS_Store
+cArcade.code-workspace
