@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "headers/shader.hpp"
 
 bool initGLFW()
 {
@@ -53,11 +54,12 @@ bool buildWindow (GLFWwindow **window)
   return true;
 }
 
-bool gameLoop(GLFWwindow **window, GLuint *vertexbuffer)
+bool gameLoop(GLFWwindow **window, GLuint *vertexbuffer, GLuint *programID)
 {
   while (!glfwWindowShouldClose(*window))
   {
     glClear( GL_COLOR_BUFFER_BIT ); // Clear the screen.
+    glUseProgram(*programID);
     // Draw
 
     // 1st attribute buffer : vertices
@@ -89,10 +91,11 @@ int main(void)
   if (!initGLFW())
     return EXIT_FAILURE;
   if (!buildWindow(&window))
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
+  GLuint programID = LoadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); // Create and compile GLSL Shaders
 
   // An array of 3 vectors / vertices: x, y, z
   static const GLfloat g_vertex_buffer_data[] = 
@@ -106,7 +109,7 @@ int main(void)
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);// The following commands will talk about our 'vertexbuffer' buffer
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);// Give our vertices to OpenGL.
 
-  if (!gameLoop(&window, &vertexbuffer))
+  if (!gameLoop(&window, &vertexbuffer, &programID))
     return EXIT_FAILURE;
 
   glfwDestroyWindow(window);
