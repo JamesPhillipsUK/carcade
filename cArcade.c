@@ -23,50 +23,61 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-int main()
+bool initGLFW()
 {
-  // Initialise GLFW
-  glewExperimental = true; // Needed for core profile
+  glewExperimental = true; // This is GLEW.  Even though "Experimental" seems weird, it's needed.
   if(!glfwInit())
-  {
-    fprintf( stderr, "Failed to initialize GLFW\n" );
-    return -1;
-  }
+    return false;
 
-  glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 3.3
+  glfwWindowHint(GLFW_SAMPLES, 4); // 4x "MSAA" antialiasing.
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Set the OpenGL version.
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  return true;
+}
 
-  // Open a window and create its OpenGL context
-  GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
-  window = glfwCreateWindow( 1024, 768, "Tutorial 01", NULL, NULL);
-  if( window == NULL )
+bool buildWindow (GLFWwindow **window)
+{
+  *window = glfwCreateWindow( 1024, 768, "cArcade", NULL, NULL);
+  if (*window == NULL)
   {
-    fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
     glfwTerminate();
-    return -1;
+    return false;
   }
-  glfwMakeContextCurrent(window); // Initialize GLEW
-  glewExperimental=true; // Needed in core profile
+  glfwMakeContextCurrent(*window); // Initialize GLEW
   if (glewInit() != GLEW_OK)
+    return false;
+
+  glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE); // Capture keyboard input.
+
+  return true;
+}
+
+bool gameLoop(GLFWwindow **window)
+{
+  while (!glfwWindowShouldClose(*window))
   {
-    fprintf(stderr, "Failed to initialize GLEW\n");
-    return -1;
-  }
+    glClear( GL_COLOR_BUFFER_BIT ); // Clear the screen.
+    // Draw
 
-  // Ensure we can capture the escape key being pressed below
-  glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-  do
-  {
-    // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
-    glClear( GL_COLOR_BUFFER_BIT );
-    // Draw nothing, see you in tutorial 2 !
-
-    // Swap buffers
-    glfwSwapBuffers(window);
+    
+    glfwSwapBuffers(*window);// Swap buffers
     glfwPollEvents();
-  } // Check if the ESC key was pressed or the window was closed
-  while( glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0 );
+  }
+  return true;
+}
+
+int main(void)
+{
+  GLFWwindow *window; // Create our window.
+
+  if (!initGLFW())
+    return EXIT_FAILURE;
+  if (!buildWindow(&window))
+    return EXIT_SUCCESS;
+  if (!gameLoop(&window))
+    return EXIT_FAILURE;
+  glfwDestroyWindow(window);
+  glfwTerminate();
+  return EXIT_SUCCESS;
 }
