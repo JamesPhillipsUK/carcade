@@ -1,8 +1,8 @@
  # the compiler: gcc for C program.
-CC = g++
+CC = gcc
 
 # compiler flags:
-CFLAGS = -std=c++1z -o
+CFLAGS = -std=gnu11 -o
 LDFLAGS = -lOpenGL -lglfw -lGLEW
 
 # the build target executable:
@@ -13,7 +13,7 @@ TARGET = /usr/bin/carcade
 all: $(TARGET)
 
 $(TARGET): cArcade.c
-	$(CC) $(CFLAGS) $(TARGET) cArcade.c headers/shader.cpp $(LDFLAGS)
+	$(CC) $(CFLAGS) $(TARGET) cArcade.c headers/cShader.c $(LDFLAGS)
 
 clean:
 	$(RM) $(TARGET)

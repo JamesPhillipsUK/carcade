@@ -22,7 +22,7 @@
 #include <stdbool.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "headers/shader.hpp"
+#include "headers/cShader.h"/* Custom shader headers. */
 
 bool initGLFW()
 {
