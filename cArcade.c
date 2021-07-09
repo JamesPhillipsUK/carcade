@@ -56,6 +56,9 @@ bool buildWindow (GLFWwindow **window)
 
 bool gameLoop(GLFWwindow **window, GLuint *vertexbuffer, GLuint *programID)
 {
+  double lastTime = glfwGetTime();
+  int nbFrames = 0;
+
   while (!glfwWindowShouldClose(*window))
   {
     glClear( GL_COLOR_BUFFER_BIT ); // Clear the screen.
@@ -79,6 +82,16 @@ bool gameLoop(GLFWwindow **window, GLuint *vertexbuffer, GLuint *programID)
     
     glfwSwapBuffers(*window);// Swap buffers
     glfwPollEvents();
+
+    // Measure speed
+     double currentTime = glfwGetTime();
+     nbFrames++;
+     if ( currentTime - lastTime >= 1.0 ) // If last prinf() was more than 1 sec ago
+     {
+        printf("%f fps\n", (double)nbFrames);// printf and reset timer
+        nbFrames = 0;
+        lastTime += 1.0;
+     }
   }
   return true;
 }
@@ -95,7 +108,7 @@ int main(void)
 
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
-  GLuint programID = LoadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); // Create and compile GLSL Shaders
+  GLuint programID = loadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); // Create and compile GLSL Shaders
 
   // An array of 3 vectors / vertices: x, y, z
   static const GLfloat g_vertex_buffer_data[] = 
