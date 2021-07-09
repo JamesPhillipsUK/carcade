@@ -1,126 +1,138 @@
+/**
+ * cShader.c
+ * Load, compile, and check GLSL shaders, written in pure C.  No complex maths or C++ dependencies needed.
+ * Inspired by: https://github.com/opengl-tutorials/ogl/blob/master/common/shader.cpp
+ * 
+ * @author Jesse Phillips <james@jamesphillipsuk.com>
+ **/
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <GL/glew.h>
-
 #include "cShader.h"
 
-GLuint LoadShaders(const char *vertex_file_path,const char *fragment_file_path)
+/**
+ * loadShaders, loads a set of GLSL shaders, given their filepaths.
+ * 
+ * @param vertexFile - the filepath of the vertex shader.
+ * @param fragmentFile - the filepath of the fragment shader.
+ * @return GLuint the program ID these shaders are compiled and linked to.
+ **/
+GLuint loadShaders(const char *vertexFile,const char *fragmentFile)
 {
-	// Create the shaders
-	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	/* Create the shaders and store their IDs. */
+	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-	// Read the Vertex Shader code from the file
-	FILE *filePointer = fopen(vertex_file_path, "r");/* Read the file. */
-  char *vertexFileContents;
-	int len;
-  char c = '\0';
-  if (filePointer == NULL)/* If it can't access, or find the file: */
+	/* STEP 1: READ THE SHADERS */
+	/* READ IN THE VERTEX SHADER */
+	FILE *filePointer = fopen(vertexFile, "r"); /* Read the file. */
+  char *vertexFileContents; /* This will store the file contents */
+	int len; /* This holds the file length, needed to calloc() the heap memory for vertexFileContents. */
+  char c = '\0';/* The current character.  Initialised to null. */
+  if (filePointer == NULL) /* If it can't access, or find the file: */
   {
     printf("Error opening file!\n");
     return 0;
   }
-
+	/* fseek() through the file to find its length. */
 	fseek( filePointer , 0L , SEEK_END);
 	len = ftell(filePointer);
-	rewind(filePointer);
-	vertexFileContents = calloc(1, len + 1);
+	rewind(filePointer); /* Return to the start to begin reading it. */
+	vertexFileContents = calloc(1, len + 1); /* Pwease can I have some heap memory? uwu */
 	int curPos = 0;
 
-  while (c != EOF)/* Read the file to the textFile. */
+  while (c != EOF)
   {
-    c = fgetc(filePointer);/* Get a char from the file. */
-    vertexFileContents[curPos] = c;/* Add the char to our textFile variable. */
+    c = fgetc(filePointer); /* Get a char from the file. */
+    vertexFileContents[curPos] = c; /* Add the char. */
 		curPos++;
   }
 	vertexFileContents[curPos - 1] = '\0';
-  fclose(filePointer);/* Save the computer, close the file. */
+  fclose(filePointer); /* Save the computer, close the file. */
 
-	// Read the Fragment Shader code from the file
-	GLint Result = GL_FALSE;
-	int InfoLogLength;
-
-	filePointer = fopen(fragment_file_path, "r");/* Read the file. */
-  char *fragmentFileContents;
-  c = '\0';
-  if (filePointer == NULL)/* If it can't access, or find the file: */
+	/* READ IN THE FRAGMENT SHADER */
+	filePointer = fopen(fragmentFile, "r"); /* Reset filePointer for the new file.  Don't let a good variable go to waste. */
+  char *fragmentFileContents; /* This will store the file contents */
+  c = '\0'; /* Reset c */
+  if (filePointer == NULL) /* If it can't access, or find the file: */
   {
     printf("Error opening file!\n");
     return 0;
   }
-
+	/* fseek() through the file to find its length. */
 	fseek( filePointer , 0L , SEEK_END);
 	len = ftell(filePointer);
-	rewind(filePointer);
-	fragmentFileContents = calloc(1, len + 1);
+	rewind(filePointer); /* Return to the start to begin reading it. */
+	fragmentFileContents = calloc(1, len + 1); /* calloc() the memory needed for the file. */
 	curPos = 0;
 
-  while (c != EOF)/* Read the file to the textFile. */
+  while (c != EOF)
   {
     c = fgetc(filePointer);/* Get a char from the file. */
-    fragmentFileContents[curPos] = c;/* Add the char to our textFile variable. */
+    fragmentFileContents[curPos] = c;/* Add the char. */
 		curPos++;
   }
 	fragmentFileContents[curPos - 1] = '\0';
   fclose(filePointer);/* Save the computer, close the file. */
 
-	// Compile Vertex Shader
-	printf("Compiling shader : %s\n", vertex_file_path);
-	//char const * VertexSourcePointer = VertexShaderCode.c_str();
-	char const * VertexSourcePointer = vertexFileContents;
-	glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
-	glCompileShader(VertexShaderID);
+	/* STEP 2: COMPILE THE SHADERS */
+	/* COMPILE THE VERTEX SHADER */
+	/*printf("Compiling vertex shader : %s\n", vertexFile);*/ /* DEBUG INFO */
+	char const *vertexSourcePointer = vertexFileContents; /* glShaderSource() only wants char const *s, not char*s.  Don't ask why. */
+	glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL); /* Give GLEW the shaders. */
+	glCompileShader(vertexShaderID); /* ANd compile them. */
 
-	// Check Vertex Shader
-	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 )
+	/* COMPILE THE FRAGMENT SHADER */
+	/*printf("Compiling fragment shader : %s\n", fragmentFile);*/ /* DEBUG INFO */
+	char const *fragmentSourcePointer = fragmentFileContents; /* As above, but with fragments, not vertices. */
+	glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
+	glCompileShader(fragmentShaderID);
+
+	/* STEP 3: CHECK THE SHADER VALIDITY */
+	GLint result = GL_FALSE;
+	int infoLogLength;
+	/* CHECK THE VERTEX SHADER */
+	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &result); /* What's the compilation status?  Did it work? */
+	glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength); /* Is there an error message? */
+	if ( infoLogLength > 0 )
 	{
-		GLchar *VertexShaderErrorMessage;
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-		printf("%s\n", &VertexShaderErrorMessage[0]);
+		GLchar *vertexShaderErrorMessage;
+		glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
+		printf("%s\n", &vertexShaderErrorMessage[0]); /* If there's an error, print it to console. */
 	}
 
-	// Compile Fragment Shader
-	printf("Compiling shader : %s\n", fragment_file_path);
-	//char const * FragmentSourcePointer = FragmentShaderCode.c_str();
-	char const * FragmentSourcePointer = fragmentFileContents;
-	glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
-	glCompileShader(FragmentShaderID);
-
-	// Check Fragment Shader
-	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 )
+	/* CHECK THE FRAGMENT SHADER */
+	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result); /* As above, but with fragments, not vertices. */
+	glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if ( infoLogLength > 0 )
 	{
-		GLchar *FragmentShaderErrorMessage;
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-		printf("%s\n", &FragmentShaderErrorMessage[0]);
+		GLchar *fragmentShaderErrorMessage;
+		glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
+		printf("%s\n", &fragmentShaderErrorMessage[0]);
 	}
 
-	// Link the program
-	printf("Linking program\n");
-	GLuint ProgramID = glCreateProgram();
-	glAttachShader(ProgramID, VertexShaderID);
-	glAttachShader(ProgramID, FragmentShaderID);
-	glLinkProgram(ProgramID);
+	/* STEP 4: LINK THE PROGRAM TO THE SHADERS */
+	/* LINK */
+	GLuint programID = glCreateProgram(); /* Make the program and save its ID. */
+	glAttachShader(programID, vertexShaderID); /* Attach the shaders, and link the two together. */
+	glAttachShader(programID, fragmentShaderID);
+	glLinkProgram(programID);
 
-	// Check the program
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 )
+	/* CHECK */
+	glGetProgramiv(programID, GL_LINK_STATUS, &result); /* What's the linking status?  Did it work? */
+	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength); /* Is there an error message? */
+	if ( infoLogLength > 0 )
 	{
-		GLchar *ProgramErrorMessage;
-		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-		printf("%s\n", &ProgramErrorMessage[0]);
+		GLchar *programErrorMessage;
+		glGetProgramInfoLog(programID, infoLogLength, NULL, &programErrorMessage[0]);
+		printf("%s\n", &programErrorMessage[0]); /* If there's an error, print it to console. */
 	}
-	
-	glDetachShader(ProgramID, VertexShaderID);
-	glDetachShader(ProgramID, FragmentShaderID);
-	
-	glDeleteShader(VertexShaderID);
-	glDeleteShader(FragmentShaderID);
-
-	return ProgramID;
+	/* STEP 5: CLEANUP */
+	glDetachShader(programID, vertexShaderID);
+	glDetachShader(programID, fragmentShaderID);
+	glDeleteShader(vertexShaderID);
+	glDeleteShader(fragmentShaderID);
+	free(vertexFileContents);
+	free(fragmentFileContents);
+	return programID;
 }
