@@ -24,19 +24,30 @@
 #include <GLFW/glfw3.h>
 #include "headers/cShader.h"/* Custom shader headers. */
 
+/**
+ * initGLFW initialises GLFW with the setup we need.
+ * 
+ * @return boolean - did it work?
+ **/
 bool initGLFW()
 {
-  glewExperimental = true; // This is GLEW.  Even though "Experimental" seems weird, it's needed.
+  glewExperimental = true; /* This is GLEW.  Even though "Experimental" seems weird, it's needed. */
   if(!glfwInit())
     return false;
 
-  glfwWindowHint(GLFW_SAMPLES, 4); // 4x "MSAA" antialiasing.
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Set the OpenGL version.
+  glfwWindowHint(GLFW_SAMPLES, 4); /* 4x "MSAA" antialiasing. */
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); /* Set the OpenGL version. 4.6.0 here.*/
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   return true;
 }
 
+/**
+ * buildWindow builds the window we've initialised.
+ * 
+ * @param window - a pointer to the window.
+ * @return boolean - did it work?
+ **/
 bool buildWindow (GLFWwindow **window)
 {
   *window = glfwCreateWindow( 1024, 768, "cArcade", NULL, NULL);
@@ -45,84 +56,101 @@ bool buildWindow (GLFWwindow **window)
     glfwTerminate();
     return false;
   }
-  glfwMakeContextCurrent(*window); // Initialize GLEW
+  glfwMakeContextCurrent(*window); /* Initialize GLEW */
   if (glewInit() != GLEW_OK)
     return false;
 
-  glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE); // Capture keyboard input.
-
+  glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE); /* Capture keyboard input. */
   return true;
 }
 
-bool gameLoop(GLFWwindow **window, GLuint *vertexbuffer, GLuint *programID)
+/**
+ * gameLoop - The runtime of the game.  This generates and pushes every frame.
+ * 
+ * @param window - the window the game is in.
+ * @param vertexBuffer - the vertices of the shapes in the game.
+ * @param programID - the program ID which links graphics and shaders to each other and this program.
+ * @return boolean - did it work?
+ **/
+bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID)
 {
-  double lastTime = glfwGetTime();
-  int nbFrames = 0;
+  double startTime = glfwGetTime(); /* Start the clock for the FPS Counter */
+  int framePerSecondCount = 0; /* Start the FPS counter at 0. */
 
+  /* BEGIN THE LOOP */
   while (!glfwWindowShouldClose(*window))
   {
-    glClear( GL_COLOR_BUFFER_BIT ); // Clear the screen.
+    glClear( GL_COLOR_BUFFER_BIT ); /* Clear the screen. */
     glUseProgram(*programID);
-    // Draw
 
-    // 1st attribute buffer : vertices
+    /* THIS IS WHERE WE HANDLE THE GRAPHICS. */
+    /* Task: draw a triangle */
+    /* Step 1: create the data structure needed to define the triangle. */
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, *vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, *vertexBuffer);
     glVertexAttribPointer(
-      0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-      3,                  // size
-      GL_FLOAT,           // type
-      GL_FALSE,           // normalized?
-      0,                  // stride
-      (void*)0            // array buffer offset
+      0,                  /* Index of the first vertec to be modified. */
+      3,                  /* Size - number of components per vertex attribute. */
+      GL_FLOAT,           /* Data type of each component.  We'll use floats. */
+      GL_FALSE,           /* Do we need to normalise the values, or treat them as fixed points? */
+      0,                  /* Stride - the byte offset between attributes.  We're packing it in as tight as possible with 0. */
+      (void*)0            /* Pointer - specifies the array buffer offset. */
     );
-    // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    /* Step 2: draw the data above. */
+    glDrawArrays(GL_TRIANGLES, 0, 3); /*Draw triangles, starting at the first point (0), working to the third (3).  One complete triangle. */
     glDisableVertexAttribArray(0);
     
-    glfwSwapBuffers(*window);// Swap buffers
+    /* Step 3: Prepare the next frame of the loop. */
+    glfwSwapBuffers(*window);
     glfwPollEvents();
 
-    // Measure speed
-     double currentTime = glfwGetTime();
-     nbFrames++;
-     if ( currentTime - lastTime >= 1.0 ) // If last prinf() was more than 1 sec ago
+    /* FPS Counter. */
+     double currentTime = glfwGetTime(); /* Get current time. */
+     framePerSecondCount++;
+     if ( currentTime - startTime >= 1.0 ) /* Has one second passed? */
      {
-        printf("%f fps\n", (double)nbFrames);// printf and reset timer
-        nbFrames = 0;
-        lastTime += 1.0;
+        printf("%f fps\n", (double)framePerSecondCount);/* Return current framerate, then reset the data. */
+        framePerSecondCount = 0;
+        startTime += 1.0;
      }
+    /* END THE LOOP. */
   }
   return true;
 }
 
+/**
+ * The main body of the program.  Calls all other functions.
+ * 
+ * @param void - any console arguments are cast into the void.  We're not using them at the moment.
+ * @return EXIT_FAILURE or EXIT_SUCCESS (see stdlib.h).
+ **/
 int main(void)
 {
-  GLFWwindow *window; // Create our window.
-  GLuint VertexArrayID; // Vertex Array Object.
+  GLFWwindow *window; /* We can't work without a window. */
+  GLuint vertexArrayID; /* This will store the ID of our vertex array (for our shape). */
 
   if (!initGLFW())
     return EXIT_FAILURE;
   if (!buildWindow(&window))
     return EXIT_FAILURE;
 
-  glGenVertexArrays(1, &VertexArrayID);
-  glBindVertexArray(VertexArrayID);
-  GLuint programID = loadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); // Create and compile GLSL Shaders
+  glGenVertexArrays(1, &vertexArrayID); /* Generate the vertex array. */
+  glBindVertexArray(vertexArrayID);
+  GLuint programID = loadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); /* Build our shaders from our GLSL files. */
 
-  // An array of 3 vectors / vertices: x, y, z
-  static const GLfloat g_vertex_buffer_data[] = 
+  /* This holds 3, 3D vertices: x, y, and z. */
+  static const GLfloat vertexBufferData[] = 
   {
     -1.0f, -1.0f, 0.0f,
     1.0f, -1.0f, 0.0f,
     0.0f,  1.0f, 0.0f,
   };
-  GLuint vertexbuffer;// This will identify our vertex buffer
-  glGenBuffers(1, &vertexbuffer);// Generate 1 buffer, put the resulting identifier in vertexbuffer
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);// The following commands will talk about our 'vertexbuffer' buffer
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);// Give our vertices to OpenGL.
+  GLuint vertexBuffer;
+  glGenBuffers(1, &vertexBuffer); /* Generate a buffer for vertexBuffer. */
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBufferData), vertexBufferData, GL_STATIC_DRAW); /* Give our vertices to OpenGL. */
 
-  if (!gameLoop(&window, &vertexbuffer, &programID))
+  if (!gameLoop(&window, &vertexBuffer, &programID))
     return EXIT_FAILURE;
 
   glfwDestroyWindow(window);
