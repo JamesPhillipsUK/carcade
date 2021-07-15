@@ -3,7 +3,7 @@ CC = gcc
 
 # compiler flags:
 CFLAGS = -std=gnu11 -o
-LDFLAGS = -lOpenGL -lglfw -lGLEW
+LDFLAGS = -lOpenGL -lglfw -lGLEW -lm
 
 # the build target executable:
 TARGET = /usr/bin/carcade
