@@ -22,7 +22,11 @@
 #include <stdbool.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cglm/cglm.h>
 #include "headers/cShader.h"/* Custom shader headers. */
+
+#define WINDOWWIDTH 1024
+#define WINDOWHEIGHT 768
 
 /**
  * initGLFW initialises GLFW with the setup we need.
@@ -50,7 +54,7 @@ bool initGLFW()
  **/
 bool buildWindow (GLFWwindow **window)
 {
-  *window = glfwCreateWindow( 1024, 768, "cArcade", NULL, NULL);
+  *window = glfwCreateWindow(WINDOWWIDTH, WINDOWHEIGHT, "cArcade", NULL, NULL);
   if (*window == NULL)
   {
     glfwTerminate();
@@ -72,7 +76,7 @@ bool buildWindow (GLFWwindow **window)
  * @param programID - the program ID which links graphics and shaders to each other and this program.
  * @return boolean - did it work?
  **/
-bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID)
+bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID, mat4 *mvp, GLuint *matrixID)
 {
   double startTime = glfwGetTime(); /* Start the clock for the FPS Counter */
   int framePerSecondCount = 0; /* Start the FPS counter at 0. */
@@ -82,6 +86,8 @@ bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID)
   {
     glClear( GL_COLOR_BUFFER_BIT ); /* Clear the screen. */
     glUseProgram(*programID);
+
+    glUniformMatrix4fv(*matrixID, 1, GL_FALSE, mvp[0][0]);
 
     /* THIS IS WHERE WE HANDLE THE GRAPHICS. */
     /* Task: draw a triangle */
@@ -138,6 +144,26 @@ int main(void)
   glBindVertexArray(vertexArrayID);
   GLuint programID = loadShaders( "vertexShader.glsl", "fragmentShader.glsl" ); /* Build our shaders from our GLSL files. */
 
+  /* 45° Field of View, Projection matrix with a display range of 0.1 to 100 units */
+  mat4 projection;
+  glm_perspective(glm_rad(45.0f), WINDOWWIDTH / WINDOWHEIGHT, 0.1f, 100.0f, projection);
+
+  /* Camera matrix */
+  mat4 view;
+  glm_mat4_identity(view);
+  glm_lookat((vec3){4,3,3}, (vec3){0,0,0}, (vec3){0,1,0}, view);
+
+  /* Model matrix */
+  mat4 model;// glm_mat4(1.0f);
+  glm_mat4_identity(model);
+
+  /* Model-View-Projection */
+  mat4 mvp;// = projection * view * model;
+  glm_mat4_mul(projection, view, mvp);
+  glm_mat4_mul(mvp, model, mvp);
+
+  GLuint matrixID = glGetUniformLocation(programID, "MVP");
+
   /* This holds 3, 3D vertices: x, y, and z. */
   static const GLfloat vertexBufferData[] = 
   {
@@ -150,7 +176,7 @@ int main(void)
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBufferData), vertexBufferData, GL_STATIC_DRAW); /* Give our vertices to OpenGL. */
 
-  if (!gameLoop(&window, &vertexBuffer, &programID))
+  if (!gameLoop(&window, &vertexBuffer, &programID, &mvp, &matrixID))
     return EXIT_FAILURE;
 
   glfwDestroyWindow(window);
