@@ -72,11 +72,11 @@ bool buildWindow (GLFWwindow **window)
  * gameLoop - The runtime of the game.  This generates and pushes every frame.
  * 
  * @param window - the window the game is in.
- * @param vertexBuffer - the vertices of the shapes in the game.
+ * @param triangleVertexBuffer - the vertices of the shapes in the game.
  * @param programID - the program ID which links graphics and shaders to each other and this program.
  * @return boolean - did it work?
  **/
-bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID, mat4 *mvp, GLuint *matrixID)
+bool gameLoop(GLFWwindow **window, GLuint *triangleVertexBuffer, GLuint *cubeVertexBuffer, GLuint *programID, mat4 *mvp, GLuint *matrixID)
 {
   double startTime = glfwGetTime(); /* Start the clock for the FPS Counter */
   int framePerSecondCount = 0; /* Start the FPS counter at 0. */
@@ -90,10 +90,10 @@ bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID, mat4
     glUniformMatrix4fv(*matrixID, 1, GL_FALSE, mvp[0][0]);
 
     /* THIS IS WHERE WE HANDLE THE GRAPHICS. */
-    /* Task: draw a triangle */
+    /* Task: draw a triangle and a cube*/
     /* Step 1: create the data structure needed to define the triangle. */
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, *vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, *triangleVertexBuffer);
     glVertexAttribPointer(
       0,                  /* Index of the first vertec to be modified. */
       3,                  /* Size - number of components per vertex attribute. */
@@ -104,6 +104,20 @@ bool gameLoop(GLFWwindow **window, GLuint *vertexBuffer, GLuint *programID, mat4
     );
     /* Step 2: draw the data above. */
     glDrawArrays(GL_TRIANGLES, 0, 3); /*Draw triangles, starting at the first point (0), working to the third (3).  One complete triangle. */
+    glDisableVertexAttribArray(0);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, *cubeVertexBuffer);
+    glVertexAttribPointer(
+      0,                  /* Index of the first vertec to be modified. */
+      3,                  /* Size - number of components per vertex attribute. */
+      GL_FLOAT,           /* Data type of each component.  We'll use floats. */
+      GL_FALSE,           /* Do we need to normalise the values, or treat them as fixed points? */
+      0,                  /* Stride - the byte offset between attributes.  We're packing it in as tight as possible with 0. */
+      (void*)0            /* Pointer - specifies the array buffer offset. */
+    );
+    /* Step 2: draw the data above. */
+    glDrawArrays(GL_TRIANGLES, 0, 36); /*Draw triangles, starting at the first point (0), working to the thirty-sixth (36).  One complete cube. */
     glDisableVertexAttribArray(0);
     
     /* Step 3: Prepare the next frame of the loop. */
@@ -165,18 +179,64 @@ int main(void)
   GLuint matrixID = glGetUniformLocation(programID, "MVP");
 
   /* This holds 3, 3D vertices: x, y, and z. */
-  static const GLfloat vertexBufferData[] = 
+  static const GLfloat triangleVertexBufferData[] = 
   {
     -1.0f, -1.0f, 0.0f,
     1.0f, -1.0f, 0.0f,
     0.0f,  1.0f, 0.0f,
   };
-  GLuint vertexBuffer;
-  glGenBuffers(1, &vertexBuffer); /* Generate a buffer for vertexBuffer. */
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBufferData), vertexBufferData, GL_STATIC_DRAW); /* Give our vertices to OpenGL. */
 
-  if (!gameLoop(&window, &vertexBuffer, &programID, &mvp, &matrixID))
+  static const GLfloat cubeVertexBufferData[] = 
+  {
+      -1.0f,-1.0f,-1.0f,
+      -1.0f,-1.0f, 1.0f,
+      -1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f,-1.0f,
+      -1.0f,-1.0f,-1.0f,
+      -1.0f, 1.0f,-1.0f,
+      1.0f,-1.0f, 1.0f,
+      -1.0f,-1.0f,-1.0f,
+      1.0f,-1.0f,-1.0f,
+      1.0f, 1.0f,-1.0f,
+      1.0f,-1.0f,-1.0f,
+      -1.0f,-1.0f,-1.0f,
+      -1.0f,-1.0f,-1.0f,
+      -1.0f, 1.0f, 1.0f,
+      -1.0f, 1.0f,-1.0f,
+      1.0f,-1.0f, 1.0f,
+      -1.0f,-1.0f, 1.0f,
+      -1.0f,-1.0f,-1.0f,
+      -1.0f, 1.0f, 1.0f,
+      -1.0f,-1.0f, 1.0f,
+      1.0f,-1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f,
+      1.0f,-1.0f,-1.0f,
+      1.0f, 1.0f,-1.0f,
+      1.0f,-1.0f,-1.0f,
+      1.0f, 1.0f, 1.0f,
+      1.0f,-1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f,-1.0f,
+      -1.0f, 1.0f,-1.0f,
+      1.0f, 1.0f, 1.0f,
+      -1.0f, 1.0f,-1.0f,
+      -1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f,
+      -1.0f, 1.0f, 1.0f,
+      1.0f,-1.0f, 1.0f
+  };
+  
+  GLuint triangleVertexBuffer;
+  glGenBuffers(1, &triangleVertexBuffer); /* Generate a buffer for triangleVertexBuffer. */
+  glBindBuffer(GL_ARRAY_BUFFER, triangleVertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertexBufferData), triangleVertexBufferData, GL_STATIC_DRAW); /* Give our vertices to OpenGL. */
+
+  GLuint cubeVertexBuffer;
+  glGenBuffers(1, &cubeVertexBuffer); /* Generate a buffer for triangleVertexBuffer. */
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexBufferData), cubeVertexBufferData, GL_STATIC_DRAW); /* Give our vertices to OpenGL. */
+
+  if (!gameLoop(&window, &triangleVertexBuffer, &cubeVertexBuffer, &programID, &mvp, &matrixID))
     return EXIT_FAILURE;
 
   glfwDestroyWindow(window);
