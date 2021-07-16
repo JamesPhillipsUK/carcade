@@ -65,6 +65,10 @@ bool buildWindow (GLFWwindow **window)
     return false;
 
   glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE); /* Capture keyboard input. */
+
+  /* Handle depth in the third (z) dimension in hardware. */
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
   return true;
 }
 
@@ -84,7 +88,7 @@ bool gameLoop(GLFWwindow **window, GLuint *triangleVertexBuffer, GLuint *triangl
   /* BEGIN THE LOOP */
   while (!glfwWindowShouldClose(*window))
   {
-    glClear( GL_COLOR_BUFFER_BIT ); /* Clear the screen. */
+    glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); /* Clear the screen. */
     glUseProgram(*programID);
 
     glUniformMatrix4fv(*matrixID, 1, GL_FALSE, mvp[0][0]);
@@ -102,7 +106,7 @@ bool gameLoop(GLFWwindow **window, GLuint *triangleVertexBuffer, GLuint *triangl
       0,                  /* Stride - the byte offset between attributes.  We're packing it in as tight as possible with 0. */
       (void*)0            /* Pointer - specifies the array buffer offset. */
     );
-    
+
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, *triangleColourBuffer);
     glVertexAttribPointer(
