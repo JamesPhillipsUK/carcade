@@ -109,7 +109,7 @@ bool gameLoop(GLFWwindow **window, GLuint *triangleVertexBuffer, GLuint *cubeVer
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, *cubeVertexBuffer);
     glVertexAttribPointer(
-      0,                  /* Index of the first vertec to be modified. */
+      0,                  /* Index of the first vertec to be modified. Give each new shape a new one to access it in GLSL.*/
       3,                  /* Size - number of components per vertex attribute. */
       GL_FLOAT,           /* Data type of each component.  We'll use floats. */
       GL_FALSE,           /* Do we need to normalise the values, or treat them as fixed points? */
@@ -181,49 +181,49 @@ int main(void)
   /* This holds 3, 3D vertices: x, y, and z. */
   static const GLfloat triangleVertexBufferData[] = 
   {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f,  1.0f, 0.0f,
+    -4.0f, -1.0f, 0.0f,
+    -2.0f, -1.0f, 0.0f,
+    -3.0f,  1.0f, 0.0f,
   };
 
   static const GLfloat cubeVertexBufferData[] = 
   {
-      -1.0f,-1.0f,-1.0f,
-      -1.0f,-1.0f, 1.0f,
-      -1.0f, 1.0f, 1.0f,
-      1.0f, 1.0f,-1.0f,
-      -1.0f,-1.0f,-1.0f,
-      -1.0f, 1.0f,-1.0f,
-      1.0f,-1.0f, 1.0f,
-      -1.0f,-1.0f,-1.0f,
-      1.0f,-1.0f,-1.0f,
-      1.0f, 1.0f,-1.0f,
-      1.0f,-1.0f,-1.0f,
-      -1.0f,-1.0f,-1.0f,
-      -1.0f,-1.0f,-1.0f,
-      -1.0f, 1.0f, 1.0f,
-      -1.0f, 1.0f,-1.0f,
-      1.0f,-1.0f, 1.0f,
-      -1.0f,-1.0f, 1.0f,
-      -1.0f,-1.0f,-1.0f,
-      -1.0f, 1.0f, 1.0f,
-      -1.0f,-1.0f, 1.0f,
-      1.0f,-1.0f, 1.0f,
-      1.0f, 1.0f, 1.0f,
-      1.0f,-1.0f,-1.0f,
-      1.0f, 1.0f,-1.0f,
-      1.0f,-1.0f,-1.0f,
-      1.0f, 1.0f, 1.0f,
-      1.0f,-1.0f, 1.0f,
-      1.0f, 1.0f, 1.0f,
-      1.0f, 1.0f,-1.0f,
-      -1.0f, 1.0f,-1.0f,
-      1.0f, 1.0f, 1.0f,
-      -1.0f, 1.0f,-1.0f,
-      -1.0f, 1.0f, 1.0f,
-      1.0f, 1.0f, 1.0f,
-      -1.0f, 1.0f, 1.0f,
-      1.0f,-1.0f, 1.0f
+      -4.0f,-4.0f,-4.0f,
+      -4.0f,-4.0f, -2.0f,
+      -4.0f, -2.0f, -2.0f,
+      -2.0f, -2.0f,-4.0f,
+      -4.0f,-4.0f,-4.0f,
+      -4.0f, -2.0f,-4.0f,
+      -2.0f,-4.0f, -2.0f,
+      -4.0f,-4.0f,-4.0f,
+      -2.0f,-4.0f,-4.0f,
+      -2.0f, -2.0f,-4.0f,
+      -2.0f,-4.0f,-4.0f,
+      -4.0f,-4.0f,-4.0f,
+      -4.0f,-4.0f,-4.0f,
+      -4.0f, -2.0f, -2.0f,
+      -4.0f, -2.0f,-4.0f,
+      -2.0f,-4.0f, -2.0f,
+      -4.0f,-4.0f, -2.0f,
+      -4.0f,-4.0f,-4.0f,
+      -4.0f, -2.0f, -2.0f,
+      -4.0f,-4.0f, -2.0f,
+      -2.0f,-4.0f, -2.0f,
+      -2.0f, -2.0f, -2.0f,
+      -2.0f,-4.0f,-4.0f,
+      -2.0f, -2.0f,-4.0f,
+      -2.0f,-4.0f,-4.0f,
+      -2.0f, -2.0f, -2.0f,
+      -2.0f,-4.0f, -2.0f,
+      -2.0f, -2.0f, -2.0f,
+      -2.0f, -2.0f,-4.0f,
+      -4.0f, -2.0f,-4.0f,
+      -2.0f, -2.0f, -2.0f,
+      -4.0f, -2.0f,-4.0f,
+      -4.0f, -2.0f, -2.0f,
+      -2.0f, -2.0f, -2.0f,
+      -4.0f, -2.0f, -2.0f,
+      -2.0f,-4.0f, -2.0f
   };
   
   GLuint triangleVertexBuffer;
